@@ -5729,19 +5729,21 @@ planck.testbed('Car', function (testbed) {
   }
   var population = [];
   var infoEl = document.getElementById('info');
+  var fitnessEl = document.getElementById('fitness');
   var generationCounter = 0;
 
   var ga = new _geneticAlgorithm2.default({
     populationSize: 15,
     mutationProbability: 0.05,
-    clonesToSurvive: 2,
+    clonesToSurvive: 0,
     randomDNA: function randomDNA() {
-      var genesLength = randomInt(200, 330);
-      var genes = [];
+      var genesLength = 12;
+      var randomPoints = [];
       var i = 0;
       for (i; i < genesLength; i++) {
-        genes.push(Vec2(random(-3.0, 3.0), random(0.0, 3.0)));
+        randomPoints.push(Vec2(random(-3.0, 3.0), random(0.0, 3.0)));
       }
+      var genes = pl.Polygon(randomPoints).m_vertices;
 
       population.push(createCar(genes));
 
@@ -5787,10 +5789,13 @@ planck.testbed('Car', function (testbed) {
       return;
     }
     var oldCp = fittestCar.getPosition();
+    var fitnessList = [];
     population.forEach(function (car) {
+      var cx = car.getPosition().x;
       if (car.getPosition().x > oldCp.x && car.getPosition().y > -10) {
         fittestCar = car;
       }
+      fitnessList.push(cx);
     });
     var cp = fittestCar.getPosition();
 
@@ -5799,6 +5804,15 @@ planck.testbed('Car', function (testbed) {
     } else if (cp.x < testbed.x - 10) {
       testbed.x = cp.x + 10;
     }
+
+    var total = fitnessList.reduce(function (total, current) {
+      return total + current;
+    }, 0);
+    fitnessEl.innerHTML = fitnessList.sort(function (a, b) {
+      return b - a;
+    }).map(function (x) {
+      return '<li>' + (x / total * 100).toFixed(2) + '%</li>';
+    }).join('');
 
     if (Math.floor(cp.x) > bestX && cp.y > -10) {
       bestX = Math.floor(cp.x);

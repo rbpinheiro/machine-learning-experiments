@@ -107,19 +107,21 @@ planck.testbed('Car', function(testbed) {
   }
   let population = [];
   const infoEl = document.getElementById('info');
+  const fitnessEl = document.getElementById('fitness');
   let generationCounter = 0;
 
   const ga = new GA({
     populationSize: 15,
     mutationProbability: 0.05,
-    clonesToSurvive: 2,
+    clonesToSurvive: 0,
     randomDNA() {
-      const genesLength = randomInt(200, 330);
-      const genes = [];
+      const genesLength = 12;
+      const randomPoints = [];
       let i = 0;
       for (i; i < genesLength; i++) {
-        genes.push(Vec2(random(-3.0, 3.0), random(0.0, 3.0)));
+        randomPoints.push(Vec2(random(-3.0, 3.0), random(0.0, 3.0)));
       }
+      const genes = pl.Polygon(randomPoints).m_vertices;
 
       population.push(createCar(genes));
       
@@ -162,10 +164,13 @@ planck.testbed('Car', function(testbed) {
       return;
     }
     var oldCp = fittestCar.getPosition();
+    let fitnessList = [];
     population.forEach(car => {
+      let cx = car.getPosition().x;
       if (car.getPosition().x > oldCp.x && car.getPosition().y > -10) {
         fittestCar = car;
       }
+      fitnessList.push(cx);
     });
     var cp = fittestCar.getPosition();
     
@@ -175,6 +180,13 @@ planck.testbed('Car', function(testbed) {
     } else if (cp.x < testbed.x - 10) {
       testbed.x = cp.x + 10;
     }
+    
+    const total = fitnessList
+      .reduce((total, current) => total + current, 0);
+    fitnessEl.innerHTML = fitnessList
+      .sort((a, b) => b - a)
+      .map(x => `<li>${((x/total) * 100).toFixed(2)}%</li>`)
+      .join('');
     
     if (Math.floor(cp.x) > bestX && cp.y > -10) {
       bestX = Math.floor(cp.x);
